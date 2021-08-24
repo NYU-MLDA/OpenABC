@@ -17,7 +17,6 @@ def computeMeanAndVarianceOfNodes(numGatesAndLPStatsDict):
 def addNormalizedGateAndLPData(data,numGatesAndLPStatsDict,normalizedDataDict):
     sid = data.synID[0]
     desName = data.desName[0]
-    #normNodes = (numGatesAndLPStatsDict[desName][0][sid] + numGatesAndLPStatsDict[desName][1][sid] - normalizedDataDict[desName][0])/normalizedDataDict[desName][1]
     normNodes = (numGatesAndLPStatsDict[desName][0][sid] - normalizedDataDict[desName][0]) / normalizedDataDict[desName][1]
     data.nodes = torch.tensor([normNodes],dtype=torch.float32) # Adding AND and NOT gates
     return data
@@ -137,10 +136,6 @@ def mapAttributesToTensor(data,areaDict,delayDict):
     minMaxDelay = delayDict[data.desName[0]]
     data.area = (area - minMaxArea[1])/(minMaxArea[0] - minMaxArea[1])
     data.delay = (delay - minMaxDelay[1]) / (minMaxDelay[0] - minMaxDelay[1])
-    #adp = data.adp
-    #data.area_t = torch.tensor([area])
-    #data.adp_t = torch.tensor([adp])
-    #data.delay_t = torch.tensor([delay])
     return data
 
 
@@ -184,7 +179,6 @@ def getTopKSimilarityPercentage(list1,list2,topkpercent):
     Set2 = set(list2[:topKIndexSimilarity])
     numSimilarScripts = len(Set1.intersection(Set2))
     return (numSimilarScripts/listLen)
-
 
 
 def doScatterAndTopKRanking(batchLen,batchSize,batchData,dumpDir,trainMode):

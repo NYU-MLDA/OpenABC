@@ -1,6 +1,6 @@
 import os
 
-import torch
+import argparse
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from model import *
 from utils import *
@@ -15,6 +15,15 @@ from torch.utils.data import random_split
 import os.path as osp
 import pickle
 import sys
+
+datasetDict =  {
+    'set1' : ["train_data_set1.csv","test_data_set1.csv"],
+    'set2' : ["train_data_set2.csv","test_data_set2.csv"],
+    'set3' : ["train_data_mixmatch_v1.csv","test_data_mixmatch_v1.csv"]
+}
+
+DUMP_DIR = None
+criterion = torch.nn.MSELoss()
 
 def plotChart(x,y,xlabel,ylabel,leg_label,title):
     fig = plt.figure(figsize=(10,6))
@@ -72,152 +81,133 @@ def evaluate_plot(model, device, dataloader):
 
     return totalMSE,batchData
 
-datasetDict =  {
-    'set1' : ["train_data_set1.csv","test_data_set1.csv"],
-    'set2' : ["train_data_set2.csv","test_data_set2.csv"],
-    'v3' : ["train_data_v3.csv","test_data_v3.csv"],
-    'mixmatchv1' : ["train_data_mixmatch_v1.csv","test_data_mixmatch_v1.csv"],
-    'mixmatchv2' : ["train_data_mixmatch_v2.csv","test_data_mixmatch_v2.csv"],
-    'L1' : ["train_data_L1.csv","test_data_L1.csv"],
-    'L2' : ["test_data_L1.csv","train_data_L1.csv"]
-}
-
-datasetChoice = sys.argv[1]
-RUN_DIR = sys.argv[2]
-#BATCH_SIZE = sys.argv[3]
-
-# Hyperparameters
-batchSize = 4
-num_epochs = 100
-learning_rate = 0.0001
-nodeEmbeddingDim = 3
-synthEncodingDim = 3
-IS_STATS_AVAILABLE = True
-ROOT_DIR = '/home/abc586/ADP_REGRESS_DATASET'
-DUMP_DIR = osp.join('/home/abc586/or-synthesis/models/SynthV17',RUN_DIR)
-
-if not osp.exists(DUMP_DIR):
-    os.mkdir(DUMP_DIR)
 
 
-# Load train and test datasets
-trainDS = NetlistGraphDataset(root=ROOT_DIR,filePath=datasetDict[datasetChoice][0])
-testDS = NetlistGraphDataset(root=ROOT_DIR,filePath=datasetDict[datasetChoice][1])
+def main():
+    # Training settings
+    parser = argparse.ArgumentParser(description='GNN baselines on Synthesis Task Pytorch Geometric')
+    parser.add_argument('--batch_size', type=int, default=64,
+                        help='input batch size for training (default: 64)')
+    parser.add_argument('--lr', type=float, default=0.001,
+                        help='learning rate (default: 0.001)')
+    parser.add_argument('--epochs', type=int, default=80,
+                        help='number of epochs to train (default: 80)')
+    parser.add_argument('--dataset', type=str, default="set1",
+                        help='Split strategy (set1/set2/set3 default: set1)')
+    parser.add_argument('--rundir', type=str, required=True,default="",
+                        help='Output directory path to store result')
+    parser.add_argument('--datadir', type=str, required=True, default="",
+                        help='Dataset directory containing processed dataset, train test split file csvs')
+    args = parser.parse_args()
+    datasetChoice = args.dataset
+    #RUN_DIR = args.rundir
 
-'''
-areaDict,delayDict = getMinMaxTargetVal(trainDS)
-areaTestDict,delayTestDict = checkUnseenDesInTest(areaDict,testDS)
+    # Hyperparameters
+    batchSize = args.batch_size #64
+    num_epochs = args.epoch #80
+    learning_rate = args.lr #0.001
+    nodeEmbeddingDim = 3
+    synthEncodingDim = 3
 
-if not (areaTestDict == None and delayTestDict == None):
-   areaDict.update(areaTestDict)
-   delayDict.update(delayTestDict)
+    IS_STATS_AVAILABLE = True
+    ROOT_DIR = args.datadir #'/scratch/abc586/OPENABC_DATASET'
+    global DUMP_DIR
+    DUMP_DIR = args.rundir #osp.join('/scratch/abc586/OpenABC-dataset/SynthV9_AND',RUN_DIR)
 
-# Transform the dataset for assigning min max scalar
-trainDS.transform = transforms.Compose([lambda data: mapAttributesToTensor(data,areaDict,delayDict)])
-testDS.transform = transforms.Compose([lambda data: mapAttributesToTensor(data,areaDict,delayDict)])
-'''
-
-'''
-if IS_STATS_AVAILABLE:
-    with open(osp.join(ROOT_DIR,'areaStats.pickle'),'rb') as f:
-        areaStats = pickle.load(f)
-    with open(osp.join(ROOT_DIR,'delayStats.pickle'),'rb') as f:
-        delayStats = pickle.load(f)
-else:
-    areaStats,delayStats = getMeanAreaAndDelay(trainDS,testDS)
-    with open(osp.join(ROOT_DIR,'areaStats.pickle'),'wb') as f:
-        pickle.dump(areaStats,f)
-    with open(osp.join(ROOT_DIR,'delayStats.pickle'),'wb') as f:
-        pickle.dump(delayStats,f)
-
-# Transform the dataset for assigning normalized from mean scalar
-trainDS.transform = transforms.Compose([lambda data: mapMeanChangeToTensor(data,areaStats,delayStats)])
-testDS.transform = transforms.Compose([lambda data: mapMeanChangeToTensor(data,areaStats,delayStats)])
-'''
-
-
-if IS_STATS_AVAILABLE:
-    with open(osp.join(ROOT_DIR,'desDict.pickle'),'rb') as f:
-        numGatesAndLPStats = pickle.load(f)
-else:
-    print("\nNo pickle file found for number of gates")
-    exit(0)
-
-meanVarNodesDict = computeMeanAndVarianceOfNodes(numGatesAndLPStats)
-
-trainDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
-testDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
-
-criterion = torch.nn.MSELoss()
-num_classes = 1
+    if not osp.exists(DUMP_DIR):
+        os.mkdir(DUMP_DIR)
 
 
-# Define the model
-synthFlowEncodingDim = trainDS[0].synVec.size()[0]*synthEncodingDim
+    # Load train and test datasets
+    trainDS = NetlistGraphDataset(root=ROOT_DIR,filePath=datasetDict[datasetChoice][0])
+    testDS = NetlistGraphDataset(root=ROOT_DIR,filePath=datasetDict[datasetChoice][1])
+
+    if IS_STATS_AVAILABLE:
+        with open(osp.join(ROOT_DIR,'synthesisStatistics.pickle'),'rb') as f:
+            numGatesAndLPStats = pickle.load(f)
+    else:
+        print("\nNo pickle file found for number of gates")
+        exit(0)
+
+    meanVarNodesDict = computeMeanAndVarianceOfNodes(numGatesAndLPStats)
+
+    trainDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
+    testDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
+
+    num_classes = 1
 
 
-node_encoder = NodeEncoder(emb_dim=nodeEmbeddingDim)
-synthesis_encoder = SynthFlowEncoder(emb_dim=synthEncodingDim)
+    # Define the model
+    synthFlowEncodingDim = trainDS[0].synVec.size()[0]*synthEncodingDim
+    node_encoder = NodeEncoder(emb_dim=nodeEmbeddingDim)
+    synthesis_encoder = SynthFlowEncoder(emb_dim=synthEncodingDim)
 
-model = SynthNet(node_encoder=node_encoder,synth_encoder=synthesis_encoder,n_classes=num_classes,synth_input_dim=synthFlowEncodingDim,node_input_dim=nodeEmbeddingDim)
-optimizer = torch.optim.Adam(model.parameters(),lr=learning_rate)
-scheduler = ReduceLROnPlateau(optimizer, 'min',verbose=True)
-device = getDevice()
-model = model.to(device)
+    model = SynthNet(node_encoder=node_encoder,synth_encoder=synthesis_encoder,n_classes=num_classes,synth_input_dim=synthFlowEncodingDim,node_input_dim=nodeEmbeddingDim)
+    optimizer = torch.optim.Adam(model.parameters(),lr=learning_rate)
+    scheduler = ReduceLROnPlateau(optimizer, 'min',verbose=True)
+    device = getDevice()
+    model = model.to(device)
 
-# Split the training data into training and validation dataset
-training_validation_samples = [int(0.8*len(trainDS)),len(trainDS)-int(0.8*len(trainDS))]
-train_DS,valid_DS = random_split(trainDS,training_validation_samples)
-
-
-# Initialize the dataloaders
-train_dl = DataLoader(train_DS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
-valid_dl = DataLoader(valid_DS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
-test_dl = DataLoader(testDS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
+    # Split the training data into training and validation dataset
+    training_validation_samples = [int(0.8*len(trainDS)),len(trainDS)-int(0.8*len(trainDS))]
+    train_DS,valid_DS = random_split(trainDS,training_validation_samples)
 
 
-# Monitor the loss parameters
-valid_curve = []
-test_curve = []
-train_curve = []
-train_loss = []
+    # Initialize the dataloaders
+    train_dl = DataLoader(train_DS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
+    valid_dl = DataLoader(valid_DS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
+    test_dl = DataLoader(testDS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
 
 
-for ep in range(1, num_epochs + 1):
-    print("\nEpoch [{}/{}]".format(ep, num_epochs))
-    print("\nTraining..")
-    trainLoss = train(model, device, train_dl, optimizer)
-
-    print("\nEvaluation..")
-    validLoss = evaluate(model, device, valid_dl)
-
-    print({'Train loss': trainLoss,'Validation loss': validLoss})
-    valid_curve.append(validLoss)
-    train_loss.append(trainLoss)
-    torch.save(model.state_dict(), osp.join(DUMP_DIR, 'gcn-epoch-{}-val_loss-{:.3f}.pt'.format(ep, validLoss)))
-    scheduler.step(validLoss)
-
-best_val_epoch = np.argmax(np.array(valid_curve))
-testAcc = evaluate(model, device, test_dl)
-
-# Save training data for future plots
-with open(osp.join(DUMP_DIR,'valid_curve.pkl'),'wb') as f:
-    pickle.dump(valid_curve,f)
-
-with open(osp.join(DUMP_DIR,'train_loss.pkl'),'wb') as f:
-    pickle.dump(train_loss,f)
-
-##### EVALUATION ######
-plotChart([i+1 for i in range(len(valid_curve))],valid_curve,"# Epochs","Loss","test_acc","Validation loss")
-plotChart([i+1 for i in range(len(train_loss))],train_loss,"# Epochs","Loss","train_loss","Training loss")
-
-# Evaluate on train data
-trainMSE,trainBatchData = evaluate_plot(model, device, train_dl)
-NUM_BATCHES_TRAIN = len(train_dl)
-doScatterPlot(NUM_BATCHES_TRAIN,batchSize,trainBatchData,DUMP_DIR,True)
+    # Monitor the loss parameters
+    valid_curve = []
+    train_loss = []
 
 
-# Evaluate on test data
-testMSE,testBatchData = evaluate_plot(model, device, test_dl)
-NUM_BATCHES_TEST = len(test_dl)
-doScatterPlot(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,False)
+    for ep in range(1, num_epochs + 1):
+        print("\nEpoch [{}/{}]".format(ep, num_epochs))
+        print("\nTraining..")
+        trainLoss = train(model, device, train_dl, optimizer)
+
+        print("\nEvaluation..")
+        validLoss = evaluate(model, device, valid_dl)
+
+        print({'Train loss': trainLoss,'Validation loss': validLoss})
+        valid_curve.append(validLoss)
+        train_loss.append(trainLoss)
+        torch.save(model.state_dict(), osp.join(DUMP_DIR, 'gcn-epoch-{}-val_loss-{:.3f}.pt'.format(ep, validLoss)))
+        scheduler.step(validLoss)
+
+    best_val_epoch = np.argmax(np.array(valid_curve))
+    testAcc = evaluate(model, device, test_dl)
+    print("\nTest loss.. :"+str(testAcc))
+
+
+    # Save training data for future plots
+    with open(osp.join(DUMP_DIR,'valid_curve.pkl'),'wb') as f:
+        pickle.dump(valid_curve,f)
+
+    with open(osp.join(DUMP_DIR,'train_loss.pkl'),'wb') as f:
+        pickle.dump(train_loss,f)
+
+    ##### EVALUATION ######
+    plotChart([i+1 for i in range(len(valid_curve))],valid_curve,"# Epochs","Loss","test_acc","Validation loss")
+    plotChart([i+1 for i in range(len(train_loss))],train_loss,"# Epochs","Loss","train_loss","Training loss")
+
+    # Evaluate on train data
+    trainMSE,trainBatchData = evaluate_plot(model, device, train_dl)
+    NUM_BATCHES_TRAIN = len(train_dl)
+    doScatterPlot(NUM_BATCHES_TRAIN,batchSize,trainBatchData,DUMP_DIR,"train")
+
+    # Evaluate on validation data
+    validMSE,validBatchData = evaluate_plot(model, device, valid_dl)
+    NUM_BATCHES_VALID = len(valid_dl)
+    doScatterPlot(NUM_BATCHES_VALID,batchSize,validBatchData,DUMP_DIR,"valid")
+
+    # Evaluate on test data
+    testMSE,testBatchData = evaluate_plot(model, device, test_dl)
+    NUM_BATCHES_TEST = len(test_dl)
+    doScatterPlot(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,"test")
+
+if __name__ == "__main__":
+    main()
