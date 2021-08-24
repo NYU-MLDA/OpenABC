@@ -41,8 +41,6 @@ class NodeEncoder(torch.nn.Module):
     def forward(self, x):
         # First feature is node type, second feature is inverted predecessor
         x_embedding = self.node_type_embedding(x[:, 0])
-        #for i in range(1, x.shape[1]):
-        #print(x_embedding,x_embedding.shape)
         x_embedding = torch.cat((x_embedding, x[:,1].reshape(-1,1)), dim=1)
         return x_embedding
 
@@ -107,8 +105,6 @@ class GNN_node(torch.nn.Module):
         edge_index = batched_data.edge_index
 
         x = torch.cat([batched_data.node_type.reshape(-1, 1),batched_data.num_inverted_predecessors.reshape(-1, 1)], dim=1)
-        # h = torch.cat([batched_data.gate_type.reshape(-1,1),batched_data.node_type.reshape(-1,1)],dim=1).to(dtype=torch.float32)
-
         h = self.node_encoder(x)
 
         for layer in range(self.num_layer):
@@ -209,11 +205,9 @@ class SynthNet(torch.nn.Module):
         # GNN + (synthesis flow encoding + synthesis convolution)
         self.in_dim_to_fcs = int(self.gnn_emb_dim + self.synconv1_out_dim_flatten + self.synconv3_out_dim_flatten + self.synconv2_out_dim_flatten)
         self.fcs.append(torch.nn.Linear(self.in_dim_to_fcs,self.hidden_dim))
-        #self.batch_norms.append(torch.nn.BatchNorm1d(self.hidden_dim))
 
         for layer in range(1, self.num_layers-1):
             self.fcs.append(torch.nn.Linear(self.hidden_dim,self.hidden_dim))
-            #self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
 
         self.fcs.append(torch.nn.Linear(self.hidden_dim, self.n_classes))
 
@@ -226,10 +220,7 @@ class SynthNet(torch.nn.Module):
         synconv1_out = self.synth_conv1(h_syn)
         synconv2_out = self.synth_conv2(h_syn)
         synconv3_out = self.synth_conv3(h_syn)
-        #concatenatedInput = torch.cat([graphEmbed.reshape(batch_data.shape[0],-1),h_syn.reshape(batch_data.shape[0],-1)],dim=1)
-        #concatenatedInput = torch.cat([graphEmbed, h_syn], dim=1)
         concatenatedInput = torch.cat([graphEmbed, synconv1_out, synconv2_out, synconv3_out], dim=1)
-        #print(concatenatedInput.shape)
         x = F.relu(self.fcs[0](concatenatedInput))
         for layer in range(1, self.num_layers-1):
             x = F.relu(self.fcs[layer](x))
