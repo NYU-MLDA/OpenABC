@@ -14,7 +14,6 @@ def get_node_feature_dims():
         allowable_features['node_type']
     ]))
 
-
 full_node_feature_dims = get_node_feature_dims()
 
 
@@ -98,7 +97,6 @@ class GNN_node(torch.nn.Module):
 
         x = torch.cat([batched_data.node_type.reshape(-1, 1), batched_data.num_inverted_predecessors.reshape(-1, 1)],
                       dim=1)
-        # h = torch.cat([batched_data.gate_type.reshape(-1,1),batched_data.node_type.reshape(-1,1)],dim=1).to(dtype=torch.float32)
 
         h = self.node_encoder(x)
 
@@ -134,5 +132,4 @@ class GNN(torch.nn.Module):
         h_graph = self.pool(h_node, batched_data.batch)
         h_graph = F.relu(self.fc1(h_graph))
         prediction = self.graph_pred_linear(h_graph)
-
         return prediction
