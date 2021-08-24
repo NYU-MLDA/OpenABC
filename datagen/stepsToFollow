@@ -1,0 +1,15 @@
+Steps:
+
+1) Generate/Collect the original bench files of original IP design using OpenROAD.
+2) The bench folder have subdirectories of all IPs and original bench file.
+bench file format original designName_orig.bench
+3) synScripts folder contain subdirectories of all IPs and 1500 synthesis scripts.
+4) Each synthesis script will dump intermediate and final AIGs of the synthesis flow in bench folder of the IP numbered by
+   syn0, syn1, ... syn1499
+5) automate_synthesisScriptGen: Generate the synthesisScripts for each IPs and dump it in directory synScripts
+6) automate_bulkSynthesis: Generate the shell script file running 1500 synthesis script for the design IP
+7) automate_createSyn1500Dir: Creates 1500 directory from syn0,syn1,...syn1499 in bench folder for a given IP
+8) After bench files are generated, use automate_bench2Graphml.py. This will create shell script for each IP which performs the following steps:
+   i) Unzip syn0.zip from bench folder
+   ii) Parallel run of bench2graphml for 20 bench files in a syn directory. Wait till all are complete. Once done, remove the
+       bench folder and zip the graphml folder.
