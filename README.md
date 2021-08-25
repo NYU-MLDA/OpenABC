@@ -28,4 +28,18 @@ We list down the packages which we used on our side for experimentations. We rec
 - networkx >= 2.5
 - joblib >= 1.1.0
 
+Here are few resources to install the packages (if not using *requirements.txt*)
+
+- [Pytorch](https://pytorch.org/get-started/locally/)
+- [Torch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
+- [Networkx] (https://networkx.org/documentation/stable/install.html)
+
+Make sure that that the cudatoolkit version in the gpu matches with the pytorch-geometric's (and dependencies) CUDA version.
+
+## Organisation
+
+
+
+
+
 
