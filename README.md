@@ -50,18 +50,18 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 ### Data generation
 
 ├── datagen
-│   ├── automation
-│   │   ├── automate_bulkSynthesis.py
-│   │   ├── automate_finalDataCollection.py
-│   │   ├── automate_synbench2Graphml.py
-│   │   └── automate_synthesisScriptGen.py
+│   ├── automation 				# Scripts for automation (Bulk/parallel runs for synthesis, AIG2Graph conversions etc.)
+│   │   ├── automate_bulkSynthesis.py         # Shell script for each design to perform 1500 synthesis runs
+│   │   ├── automate_finalDataCollection.py   # Script file to collect graph statistics, area and delay of final AIG
+│   │   ├── automate_synbench2Graphml.py      # Shell script file generation to involking andAIG2Graphml.py
+│   │   └── automate_synthesisScriptGen.py    # Script to generate 1500 synthesis script customized for each design
 │   └── utilities
-│       ├── andAIG2Graphml.py
-│       ├── collectAreaAndDelay.py
-│       ├── collectGraphStatistics.py
-│       ├── pickleStatsForML.py
-│       ├── PyGDataAIG.py
-│       └── synthID2SeqMapping.py
+│       ├── andAIG2Graphml.py			# Python utility to convert AIG BENCH file to graphml format
+│       ├── collectAreaAndDelay.py            # Python utility to parse log and collect area and delay numbers
+│       ├── collectGraphStatistics.py         # Python utility to for computing final AIG statistics
+│       ├── pickleStatsForML.py               # Pickled file containing labels of all designs (to be used to assign labels in ML pipeline)
+│       ├── PyGDataAIG.py			# Python utility to convert synthesized graphml files to pytorch data format
+│       └── synthID2SeqMapping.py		# Python utility to annotate synthesis recipe using numerical encoding and dump in pickle form
 
 
 
