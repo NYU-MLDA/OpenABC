@@ -63,28 +63,43 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 
 3. In ```lib``` directory, Nangate15nm.lib file is present. This is used for technology mapping post logic minimization.
 
-4. In ```statistics``` diretcory, we have two subfolders: ```adp``` and ```finalAig```. In ```adp```, we have csv files for all designs with information about area and delay of final AIG post tech-mapping. In ```finalAig```, csv files have information about graph characteristics of final AIGs obtained post optimization. Also, there is another file named *synthesisstastistics.pickle* which have all the above information in dictionary format. This file is used for labelling purpose in ML pipeline for various tasks.
+4. In ```ptdata``` directory, we have subfolders for each design having zipped pytorch file of the format *designIP_synthesisID_stepID.pt*. Also, we kept train-test split csv files for each learning tasks in subdirectories with naming convention *lr_ID*.
 
-5. In ```synScripts``` directory, we have subfolders of each design having 1500 synthesis scripts.
+5. In ```statistics``` diretcory, we have two subfolders: ```adp``` and ```finalAig```. In ```adp```, we have csv files for all designs with information about area and delay of final AIG post tech-mapping. In ```finalAig```, csv files have information about graph characteristics of final AIGs obtained post optimization. Also, there is another file named *synthesisstastistics.pickle* which have all the above information in dictionary format. This file is used for labelling purpose in ML pipeline for various tasks.
+
+6. In ```synScripts``` directory, we have subfolders of each design having 1500 synthesis scripts.
 
 
 ### Data generation
 
 	├── datagen
-	│   ├── automation 				# Scripts for automation (Bulk/parallel runs for synthesis, AIG2Graph conversions etc.)
+	│   ├── automation 			      # Scripts for automation (Bulk/parallel runs for synthesis, AIG2Graph conversions etc.)
 	│   │   ├── automate_bulkSynthesis.py         # Shell script for each design to perform 1500 synthesis runs
 	│   │   ├── automate_finalDataCollection.py   # Script file to collect graph statistics, area and delay of final AIG
 	│   │   ├── automate_synbench2Graphml.py      # Shell script file generation to involking andAIG2Graphml.py
 	│   │   └── automate_synthesisScriptGen.py    # Script to generate 1500 synthesis script customized for each design
 	│   └── utilities
-	│       ├── andAIG2Graphml.py			# Python utility to convert AIG BENCH file to graphml format
+	│       ├── andAIG2Graphml.py		      # Python utility to convert AIG BENCH file to graphml format
 	│       ├── collectAreaAndDelay.py            # Python utility to parse log and collect area and delay numbers
 	│       ├── collectGraphStatistics.py         # Python utility to for computing final AIG statistics
 	│       ├── pickleStatsForML.py               # Pickled file containing labels of all designs (to be used to assign labels in ML pipeline)
-	│       ├── PyGDataAIG.py			# Python utility to convert synthesized graphml files to pytorch data format
-	│       └── synthID2SeqMapping.py		# Python utility to annotate synthesis recipe using numerical encoding and dump in pickle form
-	├── synScripts
-	├── library	
+	│       ├── PyGDataAIG.py		      # Python utility to convert synthesized graphml files to pytorch data format
+	│       └── synthID2SeqMapping.py	      # Python utility to annotate synthesis recipe using numerical encoding and dump in pickle form
+
+1. ```automation``` directory contains python scripts for automating bulk data generation (e.g. synthesis runs, graphml conversion, pytorch data generation etc.). ```utilities``` folder have utility scripts performing various tasks and called from automation scripts.
+
+2. ```Step 1```: Run *automate_synthesisScriptGen.py* to generate customized synthesis script for 1500 synthesis recipes. One can see the template of a synthesis recipe in ```referenceDir```.
+
+3. ```Step 2```: Run *automate_bultkSynthesis.py* to generate a shell script for a design. Run the shell script to perform the synthesis runs. Make sure **yosys-abc** is available in **PATH**.
+
+4. ```Step 3```: Run *automate_synbench2Graphml.py* to generate a shell script for generating graphml files. The shell script invokes *andAIG2Graphml.py* using 21 parallel threads processing data of each synthesis runs in sequence.
+
+5. ```Step 4```: Run *PyGDataAIG.py* to generate pytorch data for each graphml file of the format *designIP_synthesisID_stepID.pt*.
+
+6. ```Step 5```: Run *collectAreaAndDelay.py* and *collectGraphStatistics.py* to collect information about final AIG's statistics. Post that, run *pickleStatsForML.py* which will output *synthesisStatistics.pickle* file.
+
+7. ```Step 6```: Run *synthID2SeqMapping.py* utility to generate *synthID2Vec.pickle* file containing numerically encoded data of synthesis recipes.
+
 
 
 
