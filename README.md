@@ -41,7 +41,7 @@ Here are few resources to install the packages (if not using *requirements.txt*)
 
 - [Pytorch](https://pytorch.org/get-started/locally/)
 - [Torch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
-- [Networkx] (https://networkx.org/documentation/stable/install.html)
+- [Networkx](https://networkx.org/documentation/stable/install.html)
 
 Make sure that that the cudatoolkit version in the gpu matches with the pytorch-geometric's (and dependencies) CUDA version.
 
@@ -99,6 +99,96 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 6. ```Step 5```: Run *collectAreaAndDelay.py* and *collectGraphStatistics.py* to collect information about final AIG's statistics. Post that, run *pickleStatsForML.py* which will output *synthesisStatistics.pickle* file.
 
 7. ```Step 6```: Run *synthID2SeqMapping.py* utility to generate *synthID2Vec.pickle* file containing numerically encoded data of synthesis recipes.
+
+
+### Benchmarking models: Training and evaluation
+
+	├── models
+	│   ├── classification
+	│   │   └── ClassNetV1
+	│   │       ├── model.py			# Graph convolution network based architecture model
+	│   │       ├── netlistDataset.py		# Dataset loader
+	│   │       ├── train.py			# Train and evaluation utility
+	│   │       └── utils.py			# Utitility functions
+	│   └── qor
+	│       ├── NetV1
+	│       │   ├── evaluate.py
+	│       │   ├── model.py
+	│       │   ├── netlistDataset.py
+	│       │   ├── train.py
+	│       │   └── utils.py
+	│       ├── NetV2
+	│       │   ├── evaluate.py
+	│       │   ├── model.py
+	│       │   ├── netlistDataset.py
+	│       │   ├── train.py
+	│       │   └── utils.py
+	│       └── NetV3
+	│           ├── evaluate.py
+	│           ├── model.py
+	│           ├── netlistDataset.py
+	│           ├── train.py
+	│           └── utils.py
+
+```models``` directory contains the benchmarked model described in details in our paper. The names of the python utilities are self explainatory.
+
+#### Case 1: Prediction QoR of a synthesis recipe
+
+We recommend creating a following folder hierarchy before training/evaluating a model using our dataset and model codes:
+
+	├── OPENABC-D
+	│   ├── lp1
+	│   │   ├── test_data_set1.csv
+	│   │   ├── test_data_set2.csv
+	│   │   ├── test_data_set3.csv
+	│   │   ├── train_data_set1.csv
+	│   │   ├── train_data_set2.csv
+	│   │   └── train_data_set3.csv
+	│   ├── lp2
+	│   │   ├── test_data_set1.csv
+	│   │   └── train_data_set1.csv
+	│   ├── processed
+	│   ├── synthesisStatistics.pickle
+	│   └── synthID2Vec.pickle
+
+
+```OPENABC-D``` is the top level directory containing the dataset, train-test split files, and labeled data available. Transfer all the relevant zipped pytorch data in the subdirectory ```processed```.
+
+The user can now go the ```models``` directory and run codes for training and evaluation. An example run for **dataset split strategy 1** (Train on first 1000 synthesis recipe, predict QoR of next 500 recipe)
+
+```
+python train.py --datadir $HOME/OPENABC-D --rundir $HOMEDIR/NETV1_set1 --dataset set1 --lp 1 --lr 0.001 --epochs 60 --batch-size 32
+
+```
+
+Setting ```lp=1``` and ```dataset=set1``` will pick appropriate train-test split strategy dataset for QoR regression problem. The model will run for 60 epochs and report the training, validation and test performance on the dataset outputing appropriate plots.
+
+Similarly for **split-strategy 2** and **3**, one can set the dataset as ```set2``` and ```set3``` respectively.
+
+For evaluating performance of specific model on a custom curated dataset, a user can create appropriate csv file with dataset instances and add it to dictionary entry in ```train.py```. For evaluating existing dataset split, one can run the following code.
+
+```
+python evaluate.py --datadir $HOME/OPENABC-D --rundir $HOMEDIR/NETV1_set1 --dataset set1 --lp 1 --model "gcn-epoch20-loss-0.813.pt" --batch-size 32
+
+``` 
+
+The test-MSE performance we obtained on our side are as follows:
+
+|   Net Type |     Case-I     |   Case-II     |   Case-III   |
+|    :---:   |     :---:      |    :---:      |    :---:     |
+|    NetV1   |   0.648+-0.05  |  10.59+-2.78  |  0.588+-0.04 |
+|    NetV2   |   0.815+-0.02  |  1.236+-0.15  |  0.538+-0.01 | 
+|    NetV3   |   0.579+-0.02  |  1.470+-0.14  |  0.536+-0.03 |
+
+
+
+
+
+
+
+
+
+
 
 
 
