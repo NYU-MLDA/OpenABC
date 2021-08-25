@@ -47,6 +47,17 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 
 ## Organisation
 
+### Dataset directory sturcture
+
+	├── OPENABC_DATASET
+	│   ├── bench			# Original and synthesized bench files. Log reports post technology mapping
+	│   ├── graphml                # Graphml files
+	│   ├── lib			# Nangate 15nm technology library
+	│   ├── ptdata			# pytorch-geometric compatible data
+	│   ├── statistics		# Area, delay, number of nodes, depth of final AIGs for all designs
+	│   └── synScripts		# 1500 synthesis scripts customized for each design
+
+
 ### Data generation
 
 	├── datagen
@@ -62,8 +73,8 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 	│       ├── pickleStatsForML.py               # Pickled file containing labels of all designs (to be used to assign labels in ML pipeline)
 	│       ├── PyGDataAIG.py			# Python utility to convert synthesized graphml files to pytorch data format
 	│       └── synthID2SeqMapping.py		# Python utility to annotate synthesis recipe using numerical encoding and dump in pickle form
-
-
+	├── synScripts
+	├── library	
 
 
 
