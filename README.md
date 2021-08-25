@@ -49,8 +49,8 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 
 ### Data generation
 
-├── datagen
-│   ├── automation 				# Scripts for automation (Bulk/parallel runs for synthesis, AIG2Graph conversions etc.)
+|── datagen
+|   ├── automation 				# Scripts for automation (Bulk/parallel runs for synthesis, AIG2Graph conversions etc.)
 │   │   ├── automate_bulkSynthesis.py         # Shell script for each design to perform 1500 synthesis runs
 │   │   ├── automate_finalDataCollection.py   # Script file to collect graph statistics, area and delay of final AIG
 │   │   ├── automate_synbench2Graphml.py      # Shell script file generation to involking andAIG2Graphml.py
@@ -62,6 +62,15 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 │       ├── pickleStatsForML.py               # Pickled file containing labels of all designs (to be used to assign labels in ML pipeline)
 │       ├── PyGDataAIG.py			# Python utility to convert synthesized graphml files to pytorch data format
 │       └── synthID2SeqMapping.py		# Python utility to annotate synthesis recipe using numerical encoding and dump in pickle form
+
+
+    ├── build                   # Compiled files (alternatively `dist`)
+    ├── docs                    # Documentation files (alternatively `doc`)
+    ├── src                     # Source files (alternatively `lib` or `app`)
+    ├── test                    # Automated tests (alternatively `spec` or `tests`)
+    ├── tools                   # Tools and utilities
+    ├── LICENSE
+    └── README.md
 
 
 
