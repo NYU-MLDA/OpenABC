@@ -57,6 +57,10 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 	│   ├── statistics		# Area, delay, number of nodes, depth of final AIGs for all designs
 	│   └── synScripts		# 1500 synthesis scripts customized for each design
 
+1. In ```bench``` directory, each design has a subfolder containing original bench file: design_orig.bench, a log folder containing log runs of 1500 synthesis recipes, and syn<N>.zip file containing all bench files synthesized with synthesis recipe N.
+
+2. In ``graphml`` directory,
+
 
 ### Data generation
 
