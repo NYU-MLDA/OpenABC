@@ -15,17 +15,17 @@ We converted the AIGs in **pytorch** data format that can be directly used by a 
 We recommend using [venv](https://docs.python.org/3/library/venv.html) or [Anaconda](https://www.anaconda.com/) environment to install pre-requisites packages for running our framework and models.
 We list down the packages which we used on our side for experimentations. We recommend installing the packages using *requirements.txt* file provided in our repository.
 
--cudatoolkit = 10.1
--numpy >= 1.20.1
--pandas >= 1.2.2
--pickleshare >= 0.7.5
--python >=3.9
--pytorch = 1.8.1
--scikit-learn = 0.24.1
--torch-geometric=1.7.0
--tqdm >= 4.56
--seaborn >= 0.11.1
--networkx >= 2.5
--joblib >= 1.1.0
+- cudatoolkit = 10.1
+- numpy >= 1.20.1
+- pandas >= 1.2.2
+- pickleshare >= 0.7.5
+- python >=3.9
+- pytorch = 1.8.1
+- scikit-learn = 0.24.1
+- torch-geometric=1.7.0
+- tqdm >= 4.56
+- seaborn >= 0.11.1
+- networkx >= 2.5
+- joblib >= 1.1.0
 
 
