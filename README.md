@@ -47,7 +47,7 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 
 ## Organisation
 
-### Dataset directory sturcture
+### Dataset directory structure
 
 	├── OPENABC_DATASET
 	│   ├── bench			# Original and synthesized bench files. Log reports post technology mapping
