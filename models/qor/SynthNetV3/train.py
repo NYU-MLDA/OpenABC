@@ -90,6 +90,8 @@ def main():
                         help='input batch size for training (default: 64)')
     parser.add_argument('--lr', type=float, default=0.001,
                         help='learning rate (default: 0.001)')
+    parser.add_argument('--lp', type=int, default=1,
+                        help='Learning problem (QoR prediction: 1,Classification: 2)')
     parser.add_argument('--epochs', type=int, default=80,
                         help='number of epochs to train (default: 80)')
     parser.add_argument('--dataset', type=str, default="set1",
@@ -106,6 +108,7 @@ def main():
     batchSize = args.batch_size #64
     num_epochs = args.epoch #80
     learning_rate = args.lr #0.001
+    learningProblem = args.lp
     nodeEmbeddingDim = 3
     synthEncodingDim = 3
 
@@ -119,8 +122,11 @@ def main():
 
 
     # Load train and test datasets
-    trainDS = NetlistGraphDataset(root=ROOT_DIR,filePath=datasetDict[datasetChoice][0])
-    testDS = NetlistGraphDataset(root=ROOT_DIR,filePath=datasetDict[datasetChoice][1])
+    # Load train and test datasets
+    trainDS = NetlistGraphDataset(root=osp.join(ROOT_DIR, "lp" + str(learningProblem)),
+                                  filePath=datasetDict[datasetChoice][0])
+    testDS = NetlistGraphDataset(root=osp.join(ROOT_DIR, "lp" + str(learningProblem)),
+                                 filePath=datasetDict[datasetChoice][1])
 
     if IS_STATS_AVAILABLE:
         with open(osp.join(ROOT_DIR,'synthesisStatistics.pickle'),'rb') as f:
