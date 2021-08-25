@@ -59,7 +59,13 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 
 1. In ```bench``` directory, each design has a subfolder containing original bench file: design_orig.bench, a log folder containing log runs of 1500 synthesis recipes, and syn<N>.zip file containing all bench files synthesized with synthesis recipe N.
 
-2. In ``graphml`` directory,
+2. In ```graphml``` directory, each design has subfolder containing zipped graphml files corresponding to the bench files created for each synthesis runs.
+
+3. In ```lib``` directory, Nangate15nm.lib file is present. This is used for technology mapping post logic minimization.
+
+4. In ```statistics``` diretcory, we have two subfolders: ```adp``` and ```finalAig```. In ```adp```, we have csv files for all designs with information about area and delay of final AIG post tech-mapping. In ```finalAig```, csv files have information about graph characteristics of final AIGs obtained post optimization. Also, there is another file named *synthesisstastistics.pickle* which have all the above information in dictionary format. This file is used for labelling purpose in ML pipeline for various tasks.
+
+5. In ```synScripts``` directory, we have subfolders of each design having 1500 synthesis scripts.
 
 
 ### Data generation
