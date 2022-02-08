@@ -88,7 +88,7 @@ Make sure that that the cudatoolkit version in the gpu matches with the pytorch-
 
 1. ```automation``` directory contains python scripts for automating bulk data generation (e.g. synthesis runs, graphml conversion, pytorch data generation etc.). ```utilities``` folder have utility scripts performing various tasks and called from automation scripts.
 
-2. ```Step 1```: Run *automate_synthesisScriptGen.py* to generate customized synthesis script for 1500 synthesis recipes. One can see the template of a synthesis recipe in ```referenceDir```.
+2. ```Step 1```: Run *automate_synthesisScriptGen.py* to generate customized synthesis script for 1500 synthesis recipes. One can see the template of a synthesis recipe in ```referenceScripts``` under ```synScripts``` folder.
 
 3. ```Step 2```: Run *automate_bultkSynthesis.py* to generate a shell script for a design. Run the shell script to perform the synthesis runs. Make sure **yosys-abc** is available in **PATH**.
 
