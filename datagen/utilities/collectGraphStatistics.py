@@ -73,11 +73,11 @@ def dumpFinalGMLFileInfo():
     if not osp.exists(finalAIGFolder):
         os.mkdir(finalAIGFolder)
     csvFileWrite = open(osp.join(finalAIGFolder,"processed_"+DESNAME+".csv"),'w+')
-    csvFileWrite.write("desName,NOT,AND,PI,PO,LP" + delimiter)
+    csvFileWrite.write("sid,BUFF,NOT,AND,PI,PO,LP" + delimiter)
     for datapointList in informationDict:
-        desName, BUFF, NOT, AND, PI,PO, LP = datapointList
+        sid, BUFF, NOT, AND, PI,PO, LP = datapointList
         csvFileWrite.write(
-            str(desName) + commaSign + str(BUFF) + commaSign + str(NOT) + commaSign + str(AND) + commaSign + str(PI) + commaSign + str(PO) + commaSign + str(
+            str(sid) + commaSign + str(BUFF) + commaSign + str(NOT) + commaSign + str(AND) + commaSign + str(PI) + commaSign + str(PO) + commaSign + str(
                 LP) + delimiter)
     csvFileWrite.close()
 
