@@ -184,6 +184,23 @@ The test-MSE performance we obtained on our side are as follows:
 |    NetV2   |   0.815+-0.02  |  1.236+-0.15  |  0.538+-0.01 | 
 |    NetV3   |   0.579+-0.02  |  1.470+-0.14  |  0.536+-0.03 |
 
+<a id='Citation'></a>
+
+## How to cite
+
+If you use this code/dataset, please cite:
+
+```
+@misc{chowdhury2021openabcd,
+      title={OpenABC-D: A Large-Scale Dataset For Machine Learning Guided Integrated Circuit Synthesis}, 
+      author={Animesh Basak Chowdhury and Benjamin Tan and Ramesh Karri and Siddharth Garg},
+      year={2021},
+      eprint={2110.11292},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
+
 
 
 
