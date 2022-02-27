@@ -4,7 +4,7 @@
 
 ## Update (February 2022)
 
-1) The dataset is currently hosted at [OpenABC-D](https://app.globus.org/file-manager?origin_id=ae7b03ad-9e50-472c-9601-ff99054ae47c&origin_path=%2F).
+1) The dataset is hosted at [OpenABC-D](https://app.globus.org/file-manager?origin_id=ae7b03ad-9e50-472c-9601-ff99054ae47c&origin_path=%2F).
 
 2) Pytorch-geometric has newly released versions 2.0.* and is not backward compatible. Thus, to use the already existing ptdata, please install [Pytorch-geometric](https://github.com/pyg-team/pytorch_geometric/tags) version < 2.0.* or regenerate the pt data files using the dumped graphml files.
 
