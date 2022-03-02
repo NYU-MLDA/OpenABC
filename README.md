@@ -4,7 +4,9 @@
 
 ## Update (February 2022)
 
-The dataset is currently hosted at [OpenABC-D](https://app.globus.org/file-manager?origin_id=ae7b03ad-9e50-472c-9601-ff99054ae47c&origin_path=%2F).
+1) The dataset is hosted at [OpenABC-D](https://app.globus.org/file-manager?origin_id=ae7b03ad-9e50-472c-9601-ff99054ae47c&origin_path=%2F).
+
+2) Pytorch-geometric has newly released versions 2.0.* and is not backward compatible. Thus, to use the already existing ptdata, please install [Pytorch-geometric](https://github.com/pyg-team/pytorch_geometric/tags) version < 2.0.* or regenerate the pt data files using the dumped graphml files.
 
 ## Overview
 
@@ -183,6 +185,23 @@ The test-MSE performance we obtained on our side are as follows:
 |    NetV1   |   0.648+-0.05  |  10.59+-2.78  |  0.588+-0.04 |
 |    NetV2   |   0.815+-0.02  |  1.236+-0.15  |  0.538+-0.01 | 
 |    NetV3   |   0.579+-0.02  |  1.470+-0.14  |  0.536+-0.03 |
+
+<a id='Citation'></a>
+
+## How to cite
+
+If you use this code/dataset, please cite:
+
+```
+@misc{chowdhury2021openabcd,
+      title={OpenABC-D: A Large-Scale Dataset For Machine Learning Guided Integrated Circuit Synthesis}, 
+      author={Animesh Basak Chowdhury and Benjamin Tan and Ramesh Karri and Siddharth Garg},
+      year={2021},
+      eprint={2110.11292},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
 
 
 
