@@ -116,11 +116,11 @@ class NetlistGraphDataset(Dataset):
         rawFolder = os.path.join(self.root,'raw')
         if not os.path.exists(rawFolder):
             zippedGraphmlFolders = [os.path.join(self.graphmlLoc,'syn'+str(i)+'.zip') for i in range(numSynthesized)]
-            origGraphmlFolderZip = os.path.join(os.path.dirname(self.graphmlLoc),'orig',self.des)
+            #origGraphmlFolderZip = os.path.join(os.path.dirname(self.graphmlLoc),'orig',self.des)
             os.mkdir(rawFolder)
             for synZippedFolder in zippedGraphmlFolders:
                 unzipGraphmlFiles(synZippedFolder, rawFolder)
-            unzipGraphmlFiles(origGraphmlFolderZip,rawFolder)
+            #unzipGraphmlFiles(origGraphmlFolderZip,rawFolder)
         graphMLfile = glob.glob(rawFolder+os.sep+"*.graphml")
         return graphMLfile
 
