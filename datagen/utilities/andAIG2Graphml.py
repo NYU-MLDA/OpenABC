@@ -83,6 +83,18 @@ def parseAIGBenchAndCreateNetworkXGraph():
     for line in benchFileLines:
         if len(line) == 0 or line.__contains__("ABC"):
             continue
+        elif line.__contains__("vdd"):
+            ## Treat Vdd assignment as Primary Input.
+            line = line.replace(" ","")
+            pi = re.search("(.*?)=", str(line)).group(1)
+            nodeAttributedDict = {
+                "node_id": pi,
+                "node_type": nodeType["PI"],
+                "num_inverted_predecessors": 0
+            }
+            AIG_DAG.add_nodes_from([(idxCounter, nodeAttributedDict)])
+            nodeNameIDMapping[pi] = idxCounter
+            idxCounter+=1
         elif line.__contains__("INPUT"):
             line = line.replace(" ","")
             pi = re.search("INPUT\((.*?)\)",str(line)).group(1)
