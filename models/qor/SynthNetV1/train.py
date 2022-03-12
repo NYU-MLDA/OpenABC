@@ -73,9 +73,10 @@ def evaluate_plot(model, device, dataloader):
             pred = model(batch)
             lbl = batch.nodes.reshape(-1, 1)
             desName = batch.desName
+            synID = batch.synID
             predArray = pred.view(-1,1).detach().cpu().numpy()
             actualArray = lbl.view(-1,1).detach().cpu().numpy()
-            batchData.append([predArray,actualArray,desName])
+            batchData.append([predArray,actualArray,desName,synID])
             mseVal = mse(pred, lbl)
             totalMSE += mseVal
 
@@ -201,17 +202,17 @@ def main():
     # Evaluate on train data
     trainMSE,trainBatchData = evaluate_plot(model, device, train_dl)
     NUM_BATCHES_TRAIN = len(train_dl)
-    doScatterPlot(NUM_BATCHES_TRAIN,batchSize,trainBatchData,DUMP_DIR,"train")
+    doScatterAndTopKRanking(NUM_BATCHES_TRAIN,batchSize,trainBatchData,DUMP_DIR,"train")
 
     # Evaluate on validation data
     validMSE,validBatchData = evaluate_plot(model, device, valid_dl)
     NUM_BATCHES_VALID = len(valid_dl)
-    doScatterPlot(NUM_BATCHES_VALID,batchSize,validBatchData,DUMP_DIR,"valid")
+    doScatterAndTopKRanking(NUM_BATCHES_VALID,batchSize,validBatchData,DUMP_DIR,"valid")
 
     # Evaluate on test data
     testMSE,testBatchData = evaluate_plot(model, device, test_dl)
     NUM_BATCHES_TEST = len(test_dl)
-    doScatterPlot(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,"test")
+    doScatterAndTopKRanking(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,"test")
 
 if __name__ == "__main__":
     main()
