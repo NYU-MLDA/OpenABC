@@ -1,3 +1,5 @@
+from statistics import mean
+from webbrowser import get
 import torch
 from sklearn.metrics import mean_squared_error,mean_absolute_error
 import matplotlib.pyplot as plt
@@ -5,28 +7,50 @@ import os.path as osp
 import pandas as pd
 import numpy as np
 
-def computeMeanAndVarianceOfNodes(numGatesAndLPStatsDict):
-    meanAndVarNodesDict = {}
-    for des in numGatesAndLPStatsDict.keys():
-        andGates = numGatesAndLPStatsDict[des][0]
-        meanGates = np.mean(np.array(andGates))
-        stdGates = np.std(np.array(andGates))
-        meanAndVarNodesDict[des] = [meanGates,stdGates]
-    return meanAndVarNodesDict
+def getMeanAndVariance(targetList):
+    return np.mean(np.array(targetList)),np.std(np.array(targetList))
 
-def addNormalizedGateAndLPData(data,numGatesAndLPStatsDict,normalizedDataDict):
+def computeMeanAndVarianceOfTargets(targetStatsDict,targetVar='nodes'):
+    meanAndVarTargetDict = {}
+    for des in targetStatsDict.keys():
+        numNodes,_,_,areaVar,delayVar = targetStatsDict[des]
+        if targetVar == 'delay':
+            meanTarget,varTarget = getMeanAndVariance(delayVar)
+        elif targetVar == 'area':
+            meanTarget,varTarget = getMeanAndVariance(areaVar)
+        else:
+            meanTarget,varTarget = getMeanAndVariance(numNodes)
+        meanAndVarTargetDict[des] = [meanTarget,varTarget]
+    return meanAndVarTargetDict
+
+def addNormalizedTargets(data,targetStatsDict,meanVarDataDict,targetVar='nodes'):
     sid = data.synID[0]
     desName = data.desName[0]
-    normNodes = (numGatesAndLPStatsDict[desName][0][sid] - normalizedDataDict[desName][0]) / normalizedDataDict[desName][1]
-    data.nodes = torch.tensor([normNodes],dtype=torch.float32) # Adding AND and NOT gates
+    if targetVar == 'delay':    
+        targetIdentifier = 4 # Column number of target 'Delay' in synthesisStatistics.pickle entries
+        normTarget = (targetStatsDict[desName][targetIdentifier][sid] - meanVarDataDict[desName][0]) / meanVarDataDict[desName][1]
+        data.target = torch.tensor([normTarget],dtype=torch.float32)
+    elif targetVar == 'area':
+        targetIdentifier = 3 # Column number of target 'Area' in synthesisStatistics.pickle entries
+        normTarget = (targetStatsDict[desName][targetIdentifier][sid] - meanVarDataDict[desName][0]) / meanVarDataDict[desName][1]
+        data.target = torch.tensor([normTarget],dtype=torch.float32)
+    else:
+        targetIdentifier = 0 # Column number of target 'Nodes' in synthesisStatistics.pickle entries
+        normTarget = (targetStatsDict[desName][targetIdentifier][sid] - meanVarDataDict[desName][0]) / meanVarDataDict[desName][1]
+        data.target = torch.tensor([normTarget],dtype=torch.float32)
     return data
 
-def addGateAndLPData(data,numGatesAndLPStatsDict):
+
+def addAbsoluteTargets(data,targetStatsDict,targetVar='nodes'):
     sid = data.synID[0]
     desName = data.desName[0]
-    #data.nodes = torch.tensor([numGatesAndLPStatsDict[desName][0][sid] + numGatesAndLPStatsDict[desName][1][sid]],dtype=torch.float32) # Adding AND and NOT gates
-    data.nodes = torch.tensor([numGatesAndLPStatsDict[desName][0][sid]],dtype=torch.float32)  # AND gates
-    data.lp = torch.tensor([numGatesAndLPStatsDict[desName][2][sid]],dtype=torch.float32)
+    numNodes,_,_,areaVar,delayVar = targetStatsDict[desName]
+    if targetVar == 'delay':
+        data.target = torch.tensor([delayVar[sid]],dtype=torch.float32)
+    elif targetVar == 'area':
+        data.target = torch.tensor([areaVar[sid]],dtype=torch.float32)
+    else:
+        data.target = torch.tensor([numNodes[sid]],dtype=torch.float32)
     return data
 
 # Torch.std_mean returns tuple with std first and mean second term

@@ -41,7 +41,7 @@ def train(model,device,dataloader,optimizer):
     model.train()
     for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
         batch = batch.to(device)
-        lbl = batch.nodes.reshape(-1, 1)
+        lbl = batch.target.reshape(-1, 1)
         optimizer.zero_grad()
         pred = model(batch)
         loss = criterion(pred,lbl)
@@ -58,7 +58,7 @@ def evaluate(model, device, dataloader):
         for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
             batch = batch.to(device)
             pred = model(batch)
-            lbl = batch.nodes.reshape(-1, 1)
+            lbl = batch.target.reshape(-1, 1)
             mseVal = mse(pred, lbl)
             validLoss += mseVal
     return validLoss
@@ -71,7 +71,7 @@ def evaluate_plot(model, device, dataloader):
         for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
             batch = batch.to(device)
             pred = model(batch)
-            lbl = batch.nodes.reshape(-1, 1)
+            lbl = batch.target.reshape(-1, 1)
             desName = batch.desName
             predArray = pred.view(-1,1).detach().cpu().numpy()
             actualArray = lbl.view(-1,1).detach().cpu().numpy()
@@ -100,6 +100,8 @@ def main():
                         help='Output directory path to store result')
     parser.add_argument('--datadir', type=str, required=True, default="",
                         help='Dataset directory containing processed dataset, train test split file csvs')
+    parser.add_argument('--target', type=str, required=True, default="nodes",
+                        help='Target label (nodes/area/delay), default:"nodes"')
     args = parser.parse_args()
 
     datasetChoice = args.dataset
@@ -110,6 +112,7 @@ def main():
     num_epochs = args.epoch #80
     learning_rate = args.lr #0.001
     learningProblem = args.lp
+    targetLbl = args.target
     nodeEmbeddingDim = 3
     synthEncodingDim = 3
 
@@ -128,15 +131,15 @@ def main():
 
     if IS_STATS_AVAILABLE:
         with open(osp.join(ROOT_DIR,'synthesisStatistics.pickle'),'rb') as f:
-            numGatesAndLPStats = pickle.load(f)
+            targetStats = pickle.load(f)
     else:
         print("\nNo pickle file found for number of gates")
         exit(0)
 
-    meanVarNodesDict = computeMeanAndVarianceOfNodes(numGatesAndLPStats)
+    meanVarTargetDict = computeMeanAndVarianceOfTargets(targetStats,targetVar=targetLbl)
 
-    trainDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
-    testDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
+    trainDS.transform = transforms.Compose([lambda data: addNormalizedTargets(data,targetStats,meanVarTargetDict,targetVar=targetLbl)])
+    testDS.transform = transforms.Compose([lambda data: addNormalizedTargets(data,targetStats,meanVarTargetDict,targetVar=targetLbl)])
 
     num_classes = 1
 
