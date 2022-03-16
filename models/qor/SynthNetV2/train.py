@@ -76,7 +76,7 @@ def evaluate_plot(model, device, dataloader):
             synID = batch.synID
             predArray = pred.view(-1,1).detach().cpu().numpy()
             actualArray = lbl.view(-1,1).detach().cpu().numpy()
-            batchData.append([predArray,actualArray,desNamei,synID])
+            batchData.append([predArray,actualArray,desName,synID])
             mseVal = mse(pred, lbl)
             totalMSE += mseVal
 
