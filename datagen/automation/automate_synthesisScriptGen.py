@@ -36,14 +36,14 @@ def genSynthesisScripts():
             scriptFile = open(scriptFilePath, 'w+')
             readLibLine = "read "+os.path.join(libraryCellFolder,"nangate45.lib")+delimiter
             scriptFile.write(readLibLine)
-            fileLines[2] = "read_bench "+graphDumpFolder+os.sep+des+"_orig.bench"+delimiter
-            scriptFile.write(fileLines[2])
+            fileLines[1] = "read_bench "+graphDumpFolder+os.sep+des+"_orig.bench"+delimiter
+            scriptFile.write(fileLines[1])
             scriptFile.write("strash"+delimiter)
             firstPathFileName = os.path.join(graphDumpFolder, "syn" + str(i),des + "_syn" + str(i) + "_step0.bench"+delimiter)
             dumpFirstGraphLine = "write_bench -l " + firstPathFileName
             scriptFile.write(dumpFirstGraphLine)
             numSteps = 1
-            for line in fileLines[3:-8]:
+            for line in fileLines[2:-8]:
                 scriptFile.write(line)
                 intermediatePathFileName = os.path.join(graphDumpFolder,"syn"+str(i),des+"_syn"+str(i)+"_step"+str(numSteps)+".bench"+delimiter)
                 dumpIntermediateGraphLine = "write_bench -l " + intermediatePathFileName
