@@ -37,9 +37,9 @@ def plotChart(x,y,xlabel,ylabel,leg_label,title):
     plt.savefig(osp.join(DUMP_DIR,title+'.png'), fmt='png', bbox_inches='tight')
 
 def train(model,device,dataloader,optimizer):
-    epochLoss = 0
+    epochLoss = AverageMeter()
     model.train()
-    for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
+    for _, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
         batch = batch.to(device)
         lbl = batch.target.reshape(-1, 1)
         optimizer.zero_grad()
@@ -47,28 +47,30 @@ def train(model,device,dataloader,optimizer):
         loss = criterion(pred,lbl)
         loss.backward()
         optimizer.step()
-        epochLoss += loss.detach().item()
-    return epochLoss
+        numInputs = pred.view(-1,1).size(0)
+        epochLoss.update(loss.detach().item(),numInputs)
+    return epochLoss.avg
 
 
 def evaluate(model, device, dataloader):
     model.eval()
-    validLoss = 0
+    validLoss = AverageMeter()
     with torch.no_grad():
-        for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
+        for _, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
             batch = batch.to(device)
             pred = model(batch)
             lbl = batch.target.reshape(-1, 1)
             mseVal = mse(pred, lbl)
-            validLoss += mseVal
-    return validLoss
+            numInputs = pred.view(-1,1).size(0)
+            validLoss.update(mseVal,numInputs)
+    return validLoss.avg
 
 def evaluate_plot(model, device, dataloader):
     model.eval()
-    totalMSE = 0
+    totalMSE = AverageMeter()
     batchData = []
     with torch.no_grad():
-        for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
+        for _, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
             batch = batch.to(device)
             pred = model(batch)
             lbl = batch.target.reshape(-1, 1)
@@ -78,9 +80,10 @@ def evaluate_plot(model, device, dataloader):
             actualArray = lbl.view(-1,1).detach().cpu().numpy()
             batchData.append([predArray,actualArray,desName,synID])
             mseVal = mse(pred, lbl)
-            totalMSE += mseVal
+            numInputs = pred.view(-1,1).size(0)
+            totalMSE.update(mseVal,numInputs)
 
-    return totalMSE,batchData
+    return totalMSE.avg,batchData
 
 
 
@@ -170,25 +173,31 @@ def main():
     # Monitor the loss parameters
     valid_curve = []
     train_loss = []
+    validLossOpt = 0
+    bestValEpoch = 1
 
 
     for ep in range(1, num_epochs + 1):
         print("\nEpoch [{}/{}]".format(ep, num_epochs))
         print("\nTraining..")
         trainLoss = train(model, device, train_dl, optimizer)
-
         print("\nEvaluation..")
         validLoss = evaluate(model, device, valid_dl)
-
+        if ep > 1:
+            if validLossOpt > validLoss:
+                validLossOpt = validLoss
+                bestValEpoch = ep
+                torch.save(model.state_dict(), osp.join(DUMP_DIR, 'gcn-epoch-{}-val_loss-{:.3f}.pt'.format(bestValEpoch, validLossOpt)))
+        else:
+            validLossOpt = validLoss
+            torch.save(model.state_dict(), osp.join(DUMP_DIR, 'gcn-epoch-{}-val_loss-{:.3f}.pt'.format(bestValEpoch, validLossOpt)))
         print({'Train loss': trainLoss,'Validation loss': validLoss})
         valid_curve.append(validLoss)
         train_loss.append(trainLoss)
-        torch.save(model.state_dict(), osp.join(DUMP_DIR, 'gcn-epoch-{}-val_loss-{:.3f}.pt'.format(ep, validLoss)))
         scheduler.step(validLoss)
 
-    best_val_epoch = np.argmax(np.array(valid_curve))
-    testAcc = evaluate(model, device, test_dl)
-    print("\nTest loss.. :"+str(testAcc))
+    # Loading best validation model
+    model.load_state_dict(torch.load(osp.join(DUMP_DIR, 'gcn-epoch-{}-val_loss-{:.3f}.pt'.format(bestValEpoch, validLossOpt))))
 
 
     # Save training data for future plots
@@ -216,6 +225,18 @@ def main():
     testMSE,testBatchData = evaluate_plot(model, device, test_dl)
     NUM_BATCHES_TEST = len(test_dl)
     doScatterAndTopKRanking(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,"test")
+    
+    num_params = sum(p.numel() for p in model.parameters())
+    
+    print("********************")
+    print("Final run statistics")
+    print("********************")
+    print(f'Total Params: {num_params}')
+    print("Training loss per sample:{}".format(trainMSE))
+    print("Validation loss per sample:{}".format(validMSE))
+    print("Test loss per sample:{}".format(testMSE))
+    print("********************")
+    
 
 if __name__ == "__main__":
     main()
