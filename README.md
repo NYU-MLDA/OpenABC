@@ -2,11 +2,14 @@
 [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)](https://github.com/NYU-MLDA/OpenABC) 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## Update (February 2022)
+## Update
 
-1) The dataset is hosted at [OpenABC-D](https://app.globus.org/file-manager?origin_id=ae7b03ad-9e50-472c-9601-ff99054ae47c&origin_path=%2F).
+1) Full dataset (Initial, intermediate and final optimized AIGs) is hosted at [OpenABC-D](https://app.globus.org/file-manager?origin_id=ae7b03ad-9e50-472c-9601-ff99054ae47c&origin_path=%2F). All relevant bench, graphml, label CSVs and run logs are stored here. The entire zip is 1.4TB so it has been equally divided into 14 chunks, each of 107GB. For downloading and unzipping, minimum of 3TB disk space is required.
 
-2) Pytorch-geometric has newly released versions 2.0.* and is not backward compatible. Thus, to use the already existing ptdata, please install [Pytorch-geometric](https://github.com/pyg-team/pytorch_geometric/tags) version < 2.0.* or regenerate the pt data files using the dumped graphml files.
+2) ML-ready dataset (Pytorch files for initial AIG with synthesis recipe information + target labels as pickled file ~ 19GB) is hosted [here](https://nyu.box.com/v/openabcd-mlready). All one need is to configure the paths as documented and run the models for QoR prediction.
+
+3) Pytorch-geometric has newly released versions 2.0.* and is not backward compatible. Thus, to use the already existing pytorch data, please install [Pytorch-geometric](https://github.com/pyg-team/pytorch_geometric/tags) version < 2.0.* or regenerate the pt data files using the dumped graphml files.
+ 
 
 ## Overview
 
