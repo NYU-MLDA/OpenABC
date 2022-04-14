@@ -40,25 +40,6 @@ def plotChart(x,y,xlabel,ylabel,leg_label,title):
 
 def evaluate_plot(model, device, dataloader):
     model.eval()
-    totalMSE = 0
-    batchData = []
-    with torch.no_grad():
-        for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
-            batch = batch.to(device)
-            pred = model(batch)
-            lbl = batch.nodes.reshape(-1, 1)
-            desName = batch.desName
-            synID = batch.synID
-            predArray = pred.view(-1,1).detach().cpu().numpy()
-            actualArray = lbl.view(-1,1).detach().cpu().numpy()
-            batchData.append([predArray,actualArray,desName,synID])
-            mseVal = mse(pred, lbl)
-            totalMSE += mseVal
-
-    return totalMSE,batchData
-
-def evaluate_plot(model, device, dataloader):
-    model.eval()
     totalMSE = AverageMeter()
     batchData = []
     with torch.no_grad():
