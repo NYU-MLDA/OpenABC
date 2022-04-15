@@ -1,7 +1,7 @@
 from statistics import mean
 from webbrowser import get
 import torch
-from sklearn.metrics import mean_squared_error,mean_absolute_error
+from sklearn.metrics import mean_squared_error,mean_absolute_error,mean_absolute_percentage_error
 import matplotlib.pyplot as plt
 import os.path as osp
 import pandas as pd
@@ -202,7 +202,10 @@ def getTopKSimilarityPercentage(list1,list2,topkpercent):
     Set1 = set(list1[:topKIndexSimilarity])
     Set2 = set(list2[:topKIndexSimilarity])
     numSimilarScripts = len(Set1.intersection(Set2))
-    return (numSimilarScripts/listLen)
+    if topKIndexSimilarity >0:
+        return (numSimilarScripts/topKIndexSimilarity)
+    else:
+        return 0
 
 
 def doScatterAndTopKRanking(batchLen,batchSize,batchData,dumpDir,trainMode):
@@ -225,6 +228,12 @@ def doScatterAndTopKRanking(batchLen,batchSize,batchData,dumpDir,trainMode):
 
     uniqueDesignList = scatterPlotDF.designs.unique()
 
+    accuracyFile = osp.join(dumpDir, "topKaccuracy_" + trainMode + ".csv")
+    accuracyFileWriter = open(accuracyFile,'w+')
+    accuracyFileWriter.write("design,top1,top5,top10,top15,top20,top25"+"\n")
+    endDelim = "\n"
+    commaDelim = ","
+
     print("\nDataset type: "+trainMode)
     for d in uniqueDesignList:
         designDF = scatterPlotDF[scatterPlotDF.designs == d]
@@ -238,10 +247,17 @@ def doScatterAndTopKRanking(batchLen,batchSize,batchData,dumpDir,trainMode):
         desDF2 = designDF.sort_values(by=['prediction'])
         desDF1_synID = desDF1.synID.to_list()
         desDF2_synID = desDF2.synID.to_list()
-        top5percentScore = getTopKSimilarityPercentage(desDF1_synID,desDF2_synID,0.05)
-        top10percentScore = getTopKSimilarityPercentage(desDF1_synID,desDF2_synID,0.10)
-        top20percentScore = getTopKSimilarityPercentage(desDF1_synID, desDF2_synID,0.20)
-        print("\n"+d+" top 5:"+str(top5percentScore)+" top 10:"+str(top10percentScore)+" top 20:"+str(top20percentScore))
+        kPercentSimilarity = [0.01,0.05,0.1,0.15,0.2,0.25]
+        accuracyFileWriter.write(d)
+        for kPer in kPercentSimilarity:
+            topKPercentSimilarity = getTopKSimilarityPercentage(desDF1_synID,desDF2_synID,kPer)
+            accuracyFileWriter.write(commaDelim+str(topKPercentSimilarity))
+        accuracyFileWriter.write(endDelim)
+        desDF1.to_csv(osp.join(dumpDir,"desDF1_"+trainMode+"_"+d+".csv"),index=False)
+        desDF2.to_csv(osp.join(dumpDir,"desDF2_"+trainMode+"_"+d+".csv"),index=False)
+        mapeScore = mean_absolute_percentage_error(designDF.prediction.to_list(),designDF.actual.to_list())
+        print("MAPE ("+d+"): "+str(mapeScore))
+    accuracyFileWriter.close()
 
 
 class AverageMeter(object):

@@ -40,22 +40,23 @@ def plotChart(x,y,xlabel,ylabel,leg_label,title):
 
 def evaluate_plot(model, device, dataloader):
     model.eval()
-    totalMSE = 0
+    totalMSE = AverageMeter()
     batchData = []
     with torch.no_grad():
-        for step, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
+        for _, batch in enumerate(tqdm(dataloader, desc="Iteration",file=sys.stdout)):
             batch = batch.to(device)
             pred = model(batch)
-            lbl = batch.nodes.reshape(-1, 1)
+            lbl = batch.target.reshape(-1, 1)
             desName = batch.desName
             synID = batch.synID
             predArray = pred.view(-1,1).detach().cpu().numpy()
             actualArray = lbl.view(-1,1).detach().cpu().numpy()
             batchData.append([predArray,actualArray,desName,synID])
             mseVal = mse(pred, lbl)
-            totalMSE += mseVal
+            numInputs = pred.view(-1,1).size(0)
+            totalMSE.update(mseVal,numInputs)
 
-    return totalMSE,batchData
+    return totalMSE.avg,batchData
 
 
 def main():
@@ -71,11 +72,14 @@ def main():
                         help='Dataset directory containing processed dataset, train test split file csvs')
     parser.add_argument('--model', type=str, required=True, default="",
                         help='Pre-trained model name in path <rundir> (eg. gcn-epoch30-loss-0.7734.pt)')
+    parser.add_argument('--target', type=str, required=True, default="nodes",
+                        help='Target label (nodes/area/delay), default:"nodes"')
     args = parser.parse_args()
 
     datasetChoice = args.dataset
     #RUN_DIR = args.rundir
     MODEL_NAME = args.model
+    targetLbl = args.target
 
     # Hyperparameters
     batchSize = args.batch_size  # 64
@@ -94,15 +98,16 @@ def main():
 
     if IS_STATS_AVAILABLE:
         with open(osp.join(ROOT_DIR, 'synthesisStatistics.pickle'), 'rb') as f:
-            numGatesAndLPStats = pickle.load(f)
+            targetStats = pickle.load(f)
     else:
         print("\nNo pickle file found for number of gates")
         exit(0)
 
-    meanVarNodesDict = computeMeanAndVarianceOfNodes(numGatesAndLPStats)
+    meanVarTargetDict = computeMeanAndVarianceOfTargets(targetStats,targetVar=targetLbl)
 
-    trainDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
-    testDS.transform = transforms.Compose([lambda data: addNormalizedGateAndLPData(data,numGatesAndLPStats,meanVarNodesDict)])
+    trainDS.transform = transforms.Compose([lambda data: addNormalizedTargets(data,targetStats,meanVarTargetDict,targetVar=targetLbl)])
+    testDS.transform = transforms.Compose([lambda data: addNormalizedTargets(data,targetStats,meanVarTargetDict,targetVar=targetLbl)])
+
 
 
     num_classes = 1
@@ -118,32 +123,28 @@ def main():
     model = model.to(device)
 
     # Initialize the dataloaders
-    train_dl = DataLoader(trainDS,shuffle=True,batch_size=batchSize)
-    test_dl = DataLoader(testDS,shuffle=True,batch_size=batchSize)
+    train_dl = DataLoader(trainDS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
+    test_dl = DataLoader(testDS,shuffle=True,batch_size=batchSize,pin_memory=True,num_workers=4)
 
     # Evaluate on train data
     trainMSE,trainBatchData = evaluate_plot(model, device, train_dl)
     NUM_BATCHES_TRAIN = len(train_dl)
-    doScatterPlot(NUM_BATCHES_TRAIN,batchSize,trainBatchData,DUMP_DIR,"train")
-
+    doScatterAndTopKRanking(NUM_BATCHES_TRAIN,batchSize,trainBatchData,DUMP_DIR,"train")
 
     # Evaluate on test data
     testMSE,testBatchData = evaluate_plot(model, device, test_dl)
     NUM_BATCHES_TEST = len(test_dl)
-    doScatterPlot(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,"test")
-
-    # Dump data into pickle folder
-    with open(osp.join(DUMP_DIR,'testMSE.pkl'),'wb') as f:
-        pickle.dump(testMSE,f)
-
-    with open(osp.join(DUMP_DIR,'testBatchData.pkl'),'wb') as f:
-        pickle.dump(testBatchData,f)
-
-    with open(osp.join(DUMP_DIR,'trainBatchData.pkl'),'wb') as f:
-        pickle.dump(trainBatchData,f)
-
-    print("\nTest loss.. :"+str(testMSE)+", Batchwise test loss: "+str(testMSE/NUM_BATCHES_TEST))
-    print("\nTrain loss..:"+str(trainMSE))
+    doScatterAndTopKRanking(NUM_BATCHES_TEST,batchSize,testBatchData,DUMP_DIR,"test")
+    
+    num_params = sum(p.numel() for p in model.parameters())
+    
+    print("********************")
+    print("Final run statistics")
+    print("********************")
+    print(f'Total Params: {num_params}')
+    print("Training loss per sample:{}".format(trainMSE))
+    print("Test loss per sample:{}".format(testMSE))
+    print("********************")
 
     # Plot the charts for all epochs
     with open(osp.join(DUMP_DIR,'valid_curve.pkl'),'rb') as f:
