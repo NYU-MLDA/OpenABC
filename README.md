@@ -9,6 +9,8 @@
 2) ML-ready dataset (Pytorch files for initial AIG and synthesis recipe information + target labels as pickled file ~ 19GB) is hosted [here](https://zenodo.org/record/6399454#.YkTglzwpA5k). All one need is to configure the paths as documented and run the models for QoR prediction.
 
 3) Pytorch-geometric has newly released versions 2.0.* and is not backward compatible. Thus, to use the already existing pytorch data, please install [Pytorch-geometric](https://github.com/pyg-team/pytorch_geometric/tags) version < 2.0.* or regenerate the pt data files using the dumped graphml files.
+
+4) Original AIGs of designs have been added in the repository under **bench_openabcd**.
  
 
 ## Overview
