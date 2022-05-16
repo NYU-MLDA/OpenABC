@@ -1,7 +1,7 @@
 # OpenABC-D: A Large-Scale Dataset For Machine Learning Guided Integrated Circuit Synthesis 
 [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)](https://github.com/NYU-MLDA/OpenABC) 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-[![Downloads](https://img.shields.io/github/downloads/NYU-MLDA/OpenABC/total?style=plastic)]
+[![Github All Releases](https://img.shields.io/github/downloads/NYU-MLDA/OpenABC/total)]()
 
 ## Update
 
