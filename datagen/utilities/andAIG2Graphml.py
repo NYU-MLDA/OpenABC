@@ -78,7 +78,7 @@ def parseAIGBenchAndCreateNetworkXGraph():
     benchFile = open(INPUT_BENCH,'r+')
     benchFileLines = benchFile.readlines()
     benchFile.close()
-    AIG_DAG = nx.DiGraph()
+    AIG_DAG = nx.MultiDiGraph()
     idxCounter = 0
     for line in benchFileLines:
         if len(line) == 0 or line.__contains__("ABC"):
