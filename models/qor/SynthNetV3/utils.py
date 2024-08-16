@@ -255,7 +255,7 @@ def doScatterAndTopKRanking(batchLen,batchSize,batchData,dumpDir,trainMode):
         accuracyFileWriter.write(endDelim)
         desDF1.to_csv(osp.join(dumpDir,"desDF1_"+trainMode+"_"+d+".csv"),index=False)
         desDF2.to_csv(osp.join(dumpDir,"desDF2_"+trainMode+"_"+d+".csv"),index=False)
-        mapeScore = mean_absolute_percentage_error(designDF.prediction.to_list(),designDF.actual.to_list())
+        mapeScore = mean_absolute_percentage_error(designDF.actual.to_list(),designDF.prediction.to_list())
         print("MAPE ("+d+"): "+str(mapeScore))
     accuracyFileWriter.close()
 
